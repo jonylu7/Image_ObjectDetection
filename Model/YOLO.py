@@ -53,7 +53,7 @@ class YOLO(nn.Module):
 
         self.fcLayers=[
             nn.Flatten(),
-            nn.Linear(49,4096),
+            nn.Linear(50176,4096),
             nn.Dropout(0.5),
             nn.LeakyReLU(negative_slope=0.1),
             nn.Linear(4096,1470)

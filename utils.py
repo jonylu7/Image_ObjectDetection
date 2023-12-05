@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import patches
 from typing import Dict
 import random
-
+import json
 
 COLOR=['r','g','b','c','m','y']
 
@@ -91,9 +91,11 @@ def DisplayDataLoaderResult_VOC(dataLoader:DataLoader):
     fig,ax=plt.subplots()
     ax.imshow(image)
     for item in label['annotation']['object']:
-        print(item)
         color=randomChooseColor()
         rect=drawRectangle(item,color)
         ax.add_patch(rect)
     plt.show()
+
+
+
 
