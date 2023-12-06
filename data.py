@@ -25,11 +25,19 @@ def saveVOCClasses(classdict,classfileLocation):
     with open(classfileLocation,'w+') as file:
         json.dump(classdict,file,indent=2)
 
+def labelResize(label,image_size):
+    x_scale=image_size[0]/int(label['size']['width'])
+    y_scale=image_size[1]/int(label['size']['height'])
 
+    for obj in label['object']:
+        obj['bndbox']['xmin']=str(int(obj['bndbox']['xmin'])*x_scale)
+        obj['bndbox']['xmax']=str(int(obj['bndbox']['xmax'])*x_scale)
+        obj['bndbox']['ymin']=str(int(obj['bndbox']['ymin'])*y_scale)
+        obj['bndbox']['ymax']=str(int(obj['bndbox']['ymax'])*y_scale)
 
 
 class YOLOLoadVOCDataset(Dataset):
-    def __init__(self,train:bool,transofrm,download,year,data_location):
+    def __init__(self,train:bool,transofrm,download,year,data_location,S,B,C,image_size):
         assert year in config.VOCYEAR
         self.dataset=VOCDetection(year=year
                                       ,download=download
@@ -38,23 +46,29 @@ class YOLOLoadVOCDataset(Dataset):
                                     ,image_set=('train' if train else 'test')
             )
 
-        self.transfrom=transofrm
+
+        self.S = S
+        self.B = B
+        self.C = C
+        self.imageSize = image_size
         self.class_file_location = str(PurePath(
             data_location).parent) + "/VOC" + self.dataset.image_set + "_" + self.dataset.year + ".json"
-        self.classWithFileName=self.loadClasses()
+        self.classWithFileName = self.loadClasses()
         self.classnames=list(self.classWithFileName.keys())
+
+
 
     def loadClasses(self):
         filelocaton=self.class_file_location
-        result=dict
         result=loadVOCClasses(filelocaton)
+        index=0
         if(len(result)==0):
             for image, label in self.dataset:
+                labelResize(label['annotation'],self.imageSize)
                 for item in label['annotation']['object']:
                     if(item['name'] not in result.keys()):
-                        result[item['name']]=[label['annotation']['filename']]
-                    else:
-                        result[item['name']].append(label['annotation']['filename'])
+                        result[item['name']]=index
+                        index+=1
             saveVOCClasses(result,filelocaton)
         return result
 
@@ -63,15 +77,14 @@ class YOLOLoadVOCDataset(Dataset):
     def __getitem__(self, i):
         data,label=self.dataset[i]
 
+        ground_truth=torch.zeros(self.S,self.S,(self.B*5+self.C))
+        for rows in range(self.S):
+            for cols in range(self.S):
+                ground_truth[rows,cols,0:]
 
 
 
-
-
-
-
-
-        return(data,label)
+        return(label)
 
 
 
@@ -98,10 +111,10 @@ if __name__ == '__main__':
                                      ,transforms.ToTensor()])
 
     train_data_loader,test_data_loader=readData(transform)
-    #DisplayDataLoaderResult_VOC(train_data_loader)
-    #DisplayDataLoaderResult_VOC(test_data_loader)
+    DisplayDataLoaderResult_VOC(train_data_loader)
+    DisplayDataLoaderResult_VOC(test_data_loader)
     train_data_location=config.DATA_PATH + "og_data/archive/VOCtrainval_06-Nov-2007"
-    _,_=YOLOLoadVOCDataset(True,transform,False,'2007',train_data_location)[0]
+    _,_=YOLOLoadVOCDataset(True,transform,False,'2007',train_data_location,config.S,config.B,config.C,config.IMAGE_SIZE)[0]
 
 
 

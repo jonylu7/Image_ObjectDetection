@@ -8,6 +8,7 @@ from matplotlib import patches
 from typing import Dict
 import random
 import json
+import config
 
 COLOR=['r','g','b','c','m','y']
 
@@ -74,7 +75,6 @@ def drawRectangle(label_item,color):
     y=float(label_item['bndbox']['ymin'])
     width=float(label_item['bndbox']['xmax'])-float(label_item['bndbox']['xmin'])
     height=float(label_item['bndbox']['ymax'])-float(label_item['bndbox']['ymin'])
-
     rect=patches.Rectangle((x,y) ,width,height,linewidth=2,edgecolor=color,facecolor='none')
     plt.text(x+5,y+20,label_item['name'],fontsize=12,color=color)
     return rect
