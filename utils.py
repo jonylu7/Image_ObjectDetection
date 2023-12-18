@@ -71,10 +71,12 @@ def display_results(results:Dict):
     plt.show()
 
 def drawRectangle(label_item,color):
+
     x=float(label_item['bndbox']['xmin'])
     y=float(label_item['bndbox']['ymin'])
     width=float(label_item['bndbox']['xmax'])-float(label_item['bndbox']['xmin'])
     height=float(label_item['bndbox']['ymax'])-float(label_item['bndbox']['ymin'])
+
     rect=patches.Rectangle((x,y) ,width,height,linewidth=2,edgecolor=color,facecolor='none')
     plt.text(x+5,y+20,label_item['name'],fontsize=12,color=color)
     return rect
@@ -87,14 +89,21 @@ def randomChooseColor():
 
 def DisplayDataLoaderResult_VOC(dataLoader:DataLoader):
     image,label=next(iter(dataLoader))
-    image=image.permute(1,2,0)
-    fig,ax=plt.subplots()
+    ShowImage(image,label)
+
+
+def ShowImage(image,label):
+    image = image.permute(1, 2, 0)
+    fig, ax = plt.subplots()
     ax.imshow(image)
     for item in label['annotation']['object']:
-        color=randomChooseColor()
-        rect=drawRectangle(item,color)
+        color = randomChooseColor()
+        rect = drawRectangle(item, color)
         ax.add_patch(rect)
     plt.show()
+
+
+
 
 
 

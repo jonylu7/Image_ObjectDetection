@@ -6,7 +6,7 @@ from torchvision.datasets.voc import VOCDetection
 from torch.utils.data import DataLoader,Dataset
 import config
 import utils
-from utils import DisplayDataLoaderResult_VOC
+from utils import DisplayDataLoaderResult_VOC, ShowImage
 from pathlib import PurePath
 
 
@@ -26,15 +26,17 @@ def saveVOCClasses(classdict,classfileLocation):
         json.dump(classdict,file,indent=2)
 
 def labelResize(label,image_size):
-    x_scale=image_size[0]/int(label['size']['width'])
-    y_scale=image_size[1]/int(label['size']['height'])
+    x_scale=image_size[0]/int(label['annotation']['size']['width'])
+    y_scale=image_size[1]/int(label['annotation']['size']['height'])
 
-    for obj in label['object']:
+    for obj in label['annotation']['object']:
+        print("og:", list(obj['bndbox'].items()))
         obj['bndbox']['xmin']=str(int(obj['bndbox']['xmin'])*x_scale)
         obj['bndbox']['xmax']=str(int(obj['bndbox']['xmax'])*x_scale)
         obj['bndbox']['ymin']=str(int(obj['bndbox']['ymin'])*y_scale)
         obj['bndbox']['ymax']=str(int(obj['bndbox']['ymax'])*y_scale)
-
+        print("new:", list(obj['bndbox'].items()))
+    return label
 
 class YOLOLoadVOCDataset(Dataset):
     def __init__(self,train:bool,transofrm,download,year,data_location,S,B,C,image_size):
@@ -64,11 +66,12 @@ class YOLOLoadVOCDataset(Dataset):
         index=0
         if(len(result)==0):
             for image, label in self.dataset:
-                labelResize(label['annotation'],self.imageSize)
+
                 for item in label['annotation']['object']:
                     if(item['name'] not in result.keys()):
                         result[item['name']]=index
                         index+=1
+                #exit()
             saveVOCClasses(result,filelocaton)
         return result
 
@@ -76,7 +79,7 @@ class YOLOLoadVOCDataset(Dataset):
 
     def __getitem__(self, i):
         data,label=self.dataset[i]
-
+        label=labelResize(label, self.imageSize)
         ground_truth=torch.zeros(self.S,self.S,(self.B*5+self.C))
         for rows in range(self.S):
             for cols in range(self.S):
@@ -84,7 +87,7 @@ class YOLOLoadVOCDataset(Dataset):
 
 
 
-        return(label)
+        return(data,label)
 
 
 
@@ -111,11 +114,9 @@ if __name__ == '__main__':
                                      ,transforms.ToTensor()])
 
     train_data_loader,test_data_loader=readData(transform)
-    DisplayDataLoaderResult_VOC(train_data_loader)
-    DisplayDataLoaderResult_VOC(test_data_loader)
     train_data_location=config.DATA_PATH + "og_data/archive/VOCtrainval_06-Nov-2007"
-    _,_=YOLOLoadVOCDataset(True,transform,False,'2007',train_data_location,config.S,config.B,config.C,config.IMAGE_SIZE)[0]
-
+    image,label=YOLOLoadVOCDataset(True,transform,False,'2007',train_data_location,config.S,config.B,config.C,config.IMAGE_SIZE)[4]
+    ShowImage(image,label)
 
 
 
