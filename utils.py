@@ -18,16 +18,9 @@ def unpickle(file):
 
         return dict
 
-def readClasses(file:Path,superclass:bool=False)->list:
-    meta_data = unpickle(file)
-    if superclass:
-        classes = list(str(i)[2:-1] for i in meta_data[b'coarse_label_names'])
-    else:
-        classes=list(str(i)[2:-1] for i in meta_data[b'fine_label_names'])
-
-    return classes
 
 def save_model(model:torch.nn.Module,target_dir:str,model_name:str):
+    """save trained model in file at the given target dir"""
     target_dir_path=Path(target_dir)
     target_dir_path.mkdir(parents=True,exist_ok=True)
 
@@ -38,6 +31,7 @@ def save_model(model:torch.nn.Module,target_dir:str,model_name:str):
     torch.save(model.state_dict(),f=model_save_pth)
 
 def save_results(results:Dict,targ_dict:str,fileName):
+    """save training result that is stored as dict in file at the given target dict"""
     targ_dict=Path(targ_dict)
     targ_dict.mkdir(parents=True,exist_ok=True)
 
@@ -46,6 +40,7 @@ def save_results(results:Dict,targ_dict:str,fileName):
         print(f"dictionary saved to {Path(targ_dict)/fileName}")
 
 def read_results(targ_dict:str,fileName:str):
+    """read training result that is stored as dict in file at the given target dict"""
     file_path=Path(targ_dict)/fileName
     with open(file_path,"rb") as file:
         results=pickle.load(file)
@@ -54,6 +49,7 @@ def read_results(targ_dict:str,fileName:str):
 
 
 def display_results(results:Dict):
+    """display trainloss, trainacc... result by given dict """
     width=range(len(results["train_loss"]))
     plt.figure(figsize=(15,7))
     plt.subplot(2,1,1)
@@ -72,6 +68,7 @@ def display_results(results:Dict):
 
 
 def transferLabel(label_item):
+    """transfer label from str and return xmax,ymax...etc """
     xmin = float(label_item['bndbox']['xmin'])
     ymin = float(label_item['bndbox']['ymin'])
     xmax=float(label_item['bndbox']['xmax'])
@@ -82,7 +79,7 @@ def transferLabel(label_item):
     return xmax,xmin,ymax,ymin,width,height,name
 
 def drawRectangle(label_item,color):
-
+    """draw rectangle of the bounding box"""
     _,x,_,y,width,height,name=transferLabel(label_item)
 
     rect=patches.Rectangle((x,y) ,width,height,linewidth=2,edgecolor=color,facecolor='none')
@@ -91,16 +88,19 @@ def drawRectangle(label_item,color):
 
 
 def randomChooseColor():
+    """"Choose color randomly by predefine COLOR array """
     randNum=random.randint(0,len(COLOR)-1)
     return COLOR[randNum]
 
 
 def DisplayDataLoaderResult_VOC(dataLoader:DataLoader):
+    """"test dataloader is loaded by showing first image through ShowImage function"""
     image,label=next(iter(dataLoader))
     ShowImage(image,label)
 
 
 def ShowImage(image,label):
+    """Show Image and the object box and label name"""
     image = image.permute(1, 2, 0)
     fig, ax = plt.subplots()
     ax.imshow(image)

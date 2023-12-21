@@ -94,8 +94,8 @@ class YOLOLoadVOCDataset(Dataset):
             boxes = {}
             bbox_index = boxes.get(cell, 0)
             bbox_truth = (
-                (midx - col * grid_size_x) / config.IMAGE_SIZE[0],  # X coord relative to grid square
-                (midy - row * grid_size_y) / config.IMAGE_SIZE[1],  # Y coord relative to grid square
+                (midx - col * grid_size_x) / config.IMAGE_SIZE[0],  # X coord relative to corrisbonding grid square
+                (midy - row * grid_size_y) / config.IMAGE_SIZE[1],  # Y coord relative to corrisbonding grid square
                 (xmax - xmin) / config.IMAGE_SIZE[0],  # Width
                 (ymax - ymin) / config.IMAGE_SIZE[1],  # Height
                 1.0  # Confidence
