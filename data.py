@@ -6,7 +6,7 @@ from torchvision.datasets.voc import VOCDetection
 from torch.utils.data import DataLoader,Dataset
 import config
 import utils
-from utils import DisplayDataLoaderResult_VOC, ShowImage
+from utils import DisplayDataLoaderResult_VOC, ShowImage,transferLabel
 from pathlib import PurePath
 
 
@@ -66,7 +66,6 @@ class YOLOLoadVOCDataset(Dataset):
         index=0
         if(len(result)==0):
             for image, label in self.dataset:
-
                 for item in label['annotation']['object']:
                     if(item['name'] not in result.keys()):
                         result[item['name']]=index
@@ -81,13 +80,30 @@ class YOLOLoadVOCDataset(Dataset):
         data,label=self.dataset[i]
         label=labelResize(label, self.imageSize)
         ground_truth=torch.zeros(self.S,self.S,(self.B*5+self.C))
-        for rows in range(self.S):
-            for cols in range(self.S):
-                ground_truth[rows,cols,0:]
+        grid_size_x=data.size(dim=2)/config.S
+        grid_size_y=data.size(dim=1)/config.S
+        for obj in label['annotation']['object']:
+            xmax,xmin,ymax,ymin,width,height,name=transferLabel(obj)
 
+            midx=(xmax+xmin)/2
+            midy=(ymax+ymin)/2
 
+            col = int(midx // grid_size_x)
+            row = int(midy // grid_size_y)
+            cell = (row, col)
+            boxes = {}
+            bbox_index = boxes.get(cell, 0)
+            bbox_truth = (
+                (midx - col * grid_size_x) / config.IMAGE_SIZE[0],  # X coord relative to grid square
+                (midy - row * grid_size_y) / config.IMAGE_SIZE[1],  # Y coord relative to grid square
+                (xmax - xmin) / config.IMAGE_SIZE[0],  # Width
+                (ymax - ymin) / config.IMAGE_SIZE[1],  # Height
+                1.0  # Confidence
+            )
+            bbox_start = 5 * bbox_index + config.C
+            ground_truth[row, col, bbox_start:] = torch.tensor(bbox_truth).repeat(config.B - bbox_index)
 
-        return(data,label)
+        return(data,label,ground_truth)
 
 
 
@@ -115,7 +131,7 @@ if __name__ == '__main__':
 
     train_data_loader,test_data_loader=readData(transform)
     train_data_location=config.DATA_PATH + "og_data/archive/VOCtrainval_06-Nov-2007"
-    image,label=YOLOLoadVOCDataset(True,transform,False,'2007',train_data_location,config.S,config.B,config.C,config.IMAGE_SIZE)[4]
+    image,label,ground_truth=YOLOLoadVOCDataset(True,transform,False,'2007',train_data_location,config.S,config.B,config.C,config.IMAGE_SIZE)[4]
     ShowImage(image,label)
 
 

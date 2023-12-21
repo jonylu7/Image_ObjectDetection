@@ -70,15 +70,23 @@ def display_results(results:Dict):
 
     plt.show()
 
+
+def transferLabel(label_item):
+    xmin = float(label_item['bndbox']['xmin'])
+    ymin = float(label_item['bndbox']['ymin'])
+    xmax=float(label_item['bndbox']['xmax'])
+    ymax=float(label_item['bndbox']['ymax'])
+    width = xmax-xmin
+    height = ymax-ymin
+    name=label_item['name']
+    return xmax,xmin,ymax,ymin,width,height,name
+
 def drawRectangle(label_item,color):
 
-    x=float(label_item['bndbox']['xmin'])
-    y=float(label_item['bndbox']['ymin'])
-    width=float(label_item['bndbox']['xmax'])-float(label_item['bndbox']['xmin'])
-    height=float(label_item['bndbox']['ymax'])-float(label_item['bndbox']['ymin'])
+    _,x,_,y,width,height,name=transferLabel(label_item)
 
     rect=patches.Rectangle((x,y) ,width,height,linewidth=2,edgecolor=color,facecolor='none')
-    plt.text(x+5,y+20,label_item['name'],fontsize=12,color=color)
+    plt.text(x+5,y+20,name,fontsize=12,color=color)
     return rect
 
 
