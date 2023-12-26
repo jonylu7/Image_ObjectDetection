@@ -8,6 +8,7 @@ import config
 import utils
 from utils import DisplayDataLoaderResult_VOC, ShowImage,transferLabel
 from pathlib import PurePath
+from loss import lossFunction
 
 
 def loadVOCClasses(classfileLocation)->dict:
@@ -30,12 +31,12 @@ def labelResize(label,image_size):
     y_scale=image_size[1]/int(label['annotation']['size']['height'])
 
     for obj in label['annotation']['object']:
-        print("og:", list(obj['bndbox'].items()))
+        #print("og:", list(obj['bndbox'].items()))
         obj['bndbox']['xmin']=str(int(obj['bndbox']['xmin'])*x_scale)
         obj['bndbox']['xmax']=str(int(obj['bndbox']['xmax'])*x_scale)
         obj['bndbox']['ymin']=str(int(obj['bndbox']['ymin'])*y_scale)
         obj['bndbox']['ymax']=str(int(obj['bndbox']['ymax'])*y_scale)
-        print("new:", list(obj['bndbox'].items()))
+        #print("new:", list(obj['bndbox'].items()))
     return label
 
 class YOLOLoadVOCDataset(Dataset):
@@ -131,8 +132,11 @@ if __name__ == '__main__':
 
     train_data_loader,test_data_loader=readData(transform)
     train_data_location=config.DATA_PATH + "og_data/archive/VOCtrainval_06-Nov-2007"
-    image,label,ground_truth=YOLOLoadVOCDataset(True,transform,False,'2007',train_data_location,config.S,config.B,config.C,config.IMAGE_SIZE)[4]
-    ShowImage(image,label)
+    dataset=YOLOLoadVOCDataset(True,transform,False,'2007',train_data_location,config.S,config.B,config.C,config.IMAGE_SIZE)
+    image,label,ground_truth=dataset[4]
+    #ShowImage(image,label)
+    lossf=lossFunction(1,1.0)
+    _=lossf(dataset[4][2],dataset[5][2])
 
 
 

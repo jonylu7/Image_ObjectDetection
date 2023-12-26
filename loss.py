@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from utils import get_iou
 
 
 class lossFunction(nn.Module):
@@ -11,5 +12,9 @@ class lossFunction(nn.Module):
 
 
 
-    def forward(self,y:torch.Tensor,y_pred:torch.Tensor):
+    def forward(self,y_pred:torch.Tensor,y:torch.Tensor):
+        result=get_iou(y_pred,y)
         return 0
+
+
+
