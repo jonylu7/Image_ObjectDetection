@@ -82,6 +82,9 @@ def transferLabel(label_item):
     return xmax, xmin, ymax, ymin, width, height, name
 
 
+
+
+
 def drawRectangle(label_item, color):
     """draw rectangle of the bounding box"""
     _, x, _, y, width, height, name = transferLabel(label_item)
@@ -116,4 +119,5 @@ def ShowImage(image, label):
 
 
 def get_iou(y_pred: torch.Tensor, y: torch.Tensor):
+    """get intersection over union given two tensor"""
     return
