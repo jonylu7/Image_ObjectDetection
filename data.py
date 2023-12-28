@@ -61,7 +61,7 @@ class YOLOLoadVOCDataset(Dataset):
 
 
 
-    def loadClasses(self):
+    def loadClasses(self)->dict:
         filelocaton=self.class_file_location
         result=loadVOCClasses(filelocaton)
         index=0
@@ -85,12 +85,15 @@ class YOLOLoadVOCDataset(Dataset):
         grid_size_y=data.size(dim=1)/config.S
         for obj in label['annotation']['object']:
             xmax,xmin,ymax,ymin,width,height,name=transferLabel(obj)
+            class_index=self.classnames.index(obj['name'])
 
             midx=(xmax+xmin)/2
             midy=(ymax+ymin)/2
 
             col = int(midx // grid_size_x)
             row = int(midy // grid_size_y)
+            ground_truth[row, col, class_index] = 1
+
             cell = (row, col)
             boxes = {}
             bbox_index = boxes.get(cell, 0)
@@ -103,6 +106,7 @@ class YOLOLoadVOCDataset(Dataset):
             )
             bbox_start = 5 * bbox_index + config.C
             ground_truth[row, col, bbox_start:] = torch.tensor(bbox_truth).repeat(config.B - bbox_index)
+            boxes[cell]=bbox_index+1
 
         return(data,label,ground_truth)
 
@@ -136,6 +140,8 @@ if __name__ == '__main__':
     image,label,ground_truth=dataset[4]
     #ShowImage(image,label)
     lossf=lossFunction(1,1.0)
+    print(dataset[4][2])
+    print(dataset[4][2][2,2,:])
     _=lossf(dataset[4][2],dataset[5][2])
 
 
